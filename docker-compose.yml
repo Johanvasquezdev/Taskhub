@@ -1,0 +1,44 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: taskhub_app
+    ports:
+      - "8000:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8000
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: taskhub
+      DB_USERNAME: taskhub
+      DB_PASSWORD: secret
+
+  db:
+    image: mysql:8.4
+    container_name: taskhub_db
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_DATABASE: taskhub
+      MYSQL_USER: taskhub
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: root
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - taskhub_mysql_data:/var/lib/mysql
+
+volumes:
+  taskhub_mysql_data:
