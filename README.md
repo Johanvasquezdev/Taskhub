@@ -150,18 +150,18 @@ Vite is used to build the frontend assets. In production, Laravel serves the bui
 
 ### Tareas
 
-- Crear tareas
-- Marcar como completadas
-- Eliminar tareas
-- Prioridad: baja, media, alta
-- Fecha limite
-- Filtros por estado
+- create tasks
+- Mark as Completed
+- Delete Tasks
+- Control Priority of tasks
+- add limit dates
+- Filter by state
 
 ### Notas
 
-- Crear notas
-- Eliminar notas
-- Ver resumen desde el dashboard
+- Make Notes
+- Delete notes
+- See a summary from dashboard
 
 ## Notes
 
