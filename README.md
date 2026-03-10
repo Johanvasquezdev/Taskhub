@@ -61,6 +61,46 @@ Open:
 http://127.0.0.1:8000
 ```
 
+## Run with Docker
+
+Build and start the containers:
+
+```bash
+docker compose up --build
+```
+
+TaskHub will be available at:
+
+```text
+http://127.0.0.1:8000
+```
+
+The Docker setup includes:
+
+- `app` container with Laravel, PHP, Apache, and built Vite assets
+- `db` container with MySQL 8
+
+Useful Docker commands:
+
+```bash
+docker compose up --build
+docker compose down
+docker compose down -v
+```
+
+The MySQL container is exposed on port `3307` locally.
+
+Database credentials used by Docker:
+
+```text
+DB_CONNECTION=mysql
+DB_HOST=db
+DB_PORT=3306
+DB_DATABASE=taskhub
+DB_USERNAME=taskhub
+DB_PASSWORD=secret
+```
+
 ## Useful commands
 
 Run tests:
