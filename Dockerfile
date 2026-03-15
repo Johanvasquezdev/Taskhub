@@ -14,13 +14,43 @@ FROM node:22-alpine AS frontend_build
 
 WORKDIR /app
 
-RUN apk add --no-cache php84 php84-phar php84-mbstring php84-openssl php84-tokenizer php84-xml \
-    && ln -sf /usr/bin/php84 /usr/bin/php
+# Instalar PHP y extensiones requeridas por Laravel 12
+RUN apk add --no-cache \
+    php84 \
+    php84-phar \
+    php84-mbstring \
+    php84-openssl \
+    php84-tokenizer \
+    php84-xml \
+    php84-session \
+    php84-fileinfo \
+    php84-dom \
+    php84-curl \
+    php84-zip
+
+# Crear enlace para usar php84 como php
+RUN ln -sf /usr/bin/php84 /usr/bin/php
+
+# Instalar Composer
+RUN apk add --no-cache composer
+
+COPY composer.json composer.lock ./
+RUN composer install \
+    --no-dev \
+    --no-interaction \
+    --prefer-dist \
+    --optimize-autoloader \
+    && rm -rf /var/cache/apk/*
 
 COPY package.json package-lock.json ./
 RUN npm ci
 
+# Copiar vendor de Laravel
 COPY --from=composer_deps /app/vendor ./vendor
+
+# Generar rutas Wayfinder antes del build
+RUN php artisan wayfinder:generate --with-form || true
+
 COPY artisan ./
 COPY app ./app
 COPY bootstrap ./bootstrap
@@ -30,6 +60,8 @@ COPY routes ./routes
 COPY resources ./resources
 COPY public ./public
 COPY vite.config.ts package.json tsconfig.json components.json ./
+
+# Construir assets - ahora wayfinder ya fue generado
 RUN npm run build
 
 FROM php:8.4-apache
