@@ -2,13 +2,18 @@ FROM composer:2 AS composer_deps
 
 WORKDIR /app
 
+# instalar GIT
+RUN apk add --no-cache git
+
+
 COPY composer.json composer.lock ./
 RUN composer install \
     --no-dev \
     --no-interaction \
     --prefer-dist \
     --optimize-autoloader \
-    --no-scripts
+    --no-scripts \
+    && rm -rf /var/cache/apk/*
 
 FROM node:22-alpine AS frontend_build
 
@@ -40,6 +45,7 @@ RUN composer install \
     --no-interaction \
     --prefer-dist \
     --optimize-autoloader \
+    --no-scripts \
     && rm -rf /var/cache/apk/*
 
 COPY package.json package-lock.json ./
@@ -47,9 +53,6 @@ RUN npm ci
 
 # Copiar vendor de Laravel
 COPY --from=composer_deps /app/vendor ./vendor
-
-# Generar rutas Wayfinder antes del build
-RUN php artisan wayfinder:generate --with-form || true
 
 COPY artisan ./
 COPY app ./app
@@ -60,6 +63,9 @@ COPY routes ./routes
 COPY resources ./resources
 COPY public ./public
 COPY vite.config.ts package.json tsconfig.json components.json ./
+
+# Generar rutas Wayfinder antes del build
+RUN php artisan wayfinder:generate --with-form || true
 
 # Construir assets - ahora wayfinder ya fue generado
 RUN npm run build
@@ -90,6 +96,7 @@ COPY --from=frontend_build /app/public/build ./public/build
 COPY docker/entrypoint.sh /usr/local/bin/taskhub-entrypoint
 
 RUN chmod +x /usr/local/bin/taskhub-entrypoint \
+    && sed -i -e 's/\r$//' /usr/local/bin/taskhub-entrypoint \
     && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
 ENTRYPOINT ["taskhub-entrypoint"]
